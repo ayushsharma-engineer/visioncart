@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://visioncart:visioncart_dev_password@localhost:5432/visioncart"
+DATABASE_URL = DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 
