@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import HTTPException
+from app.exceptions.exceptions import UnauthorizedException
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -32,10 +32,10 @@ def login_user(
     )
 
     if not db_user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password"
-        )
+        raise UnauthorizedException(
+            "INVALID_CREDENTIALS",
+            "Invalid email or password"
+            )
 
     if not verify_password(
         request.password,
@@ -84,18 +84,17 @@ def refresh_user_token(
             request.refresh_token
         )
     except Exception:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired refresh token"
-        )
-
+        raise UnauthorizedException(
+            "INVALID_REFRESH_TOKEN",
+            "Invalid or expired refresh token"
+            )
     user_id = payload.get("user_id")
 
     if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid refresh token"
-        )
+        raise UnauthorizedException(
+            "INVALID_REFRESH_TOKEN",
+            "Invalid refresh token"
+            )
 
     token_hash = hash_token(
         request.refresh_token
@@ -112,16 +111,15 @@ def refresh_user_token(
     )
 
     if not session:
-        raise HTTPException(
-            status_code=401,
-            detail="Refresh session is invalid or revoked"
-        )
-
+        raise UnauthorizedException(
+            "REFRESH_SESSION_INVALID",
+            "Refresh session is invalid or revoked"
+            )
     if session.expires_at < datetime.utcnow():
-        raise HTTPException(
-            status_code=401,
-            detail="Refresh session has expired"
-        )
+        raise UnauthorizedException(
+             "REFRESH_SESSION_EXPIRED",
+             "Refresh session has expired"
+             )
 
     new_access_token = create_access_token({
         "user_id": user_id
