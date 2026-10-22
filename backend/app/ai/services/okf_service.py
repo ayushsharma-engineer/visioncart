@@ -1,5 +1,5 @@
 from app.ai.schemas.product import ProductIntelligence
-
+from app.ai.schemas.product import ProductIntelligence
 
 def product_to_okf(product: ProductIntelligence) -> str:
     return f"""---

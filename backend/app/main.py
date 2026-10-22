@@ -14,6 +14,7 @@ from app.api.auth import router as auth_router
 
 from app.exceptions.exceptions import AppException
 from app.exceptions.handlers import app_exception_handler
+from app.api.products import router as products_router
 
 
 app = FastAPI(title="VisionCart API")
@@ -30,9 +31,14 @@ app.add_exception_handler(
 app.include_router(
     auth_router,
     prefix="/api/auth",
-    tags=["Authentication"]
-)
+    tags=["Authentication"],
 
+)
+app.include_router(
+    products_router,
+    prefix="/api/v1/products",
+    tags=["Products"],
+)
 
 @app.get("/")
 def root():
