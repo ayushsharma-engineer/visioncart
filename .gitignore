@@ -29,3 +29,6 @@ Thumbs.db
 *.pem
 *.key
 *service-account*.json
+
+# data
+/data/hm/

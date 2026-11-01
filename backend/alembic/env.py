@@ -1,4 +1,4 @@
-from logging.config import fileConfig
+﻿from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -6,9 +6,11 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.db.base import Base
+import app.models
 from app.models.user import User
 from app.models.refresh_session import RefreshSession
 from app.models.product_embedding import ProductEmbedding
+from app.models.email_auth import EmailVerificationChallenge, PasswordResetToken
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +25,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata #tells Alembic “compare this model structure with PostgreSQL and detect changes.”
+target_metadata = Base.metadata #tells Alembic â€œcompare this model structure with PostgreSQL and detect changes.â€
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -81,3 +83,6 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+from app.models.address import Address
+

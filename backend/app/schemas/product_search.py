@@ -22,6 +22,7 @@ class ProductSearchRequest(BaseModel):
 class ProductAskRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
     limit: int = Field(default=5, ge=1, le=10)
+    language: str = "auto"
 
 
 class ProductAskResponse(BaseModel):

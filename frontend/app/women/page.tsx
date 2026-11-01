@@ -1,0 +1,1 @@
+﻿import CollectionPage from "@/components/CollectionPage";export default function WomenPage(){return <CollectionPage title="Women's Collection" subtitle="Versatile pieces for everyday style and special occasions." category="women"/>}

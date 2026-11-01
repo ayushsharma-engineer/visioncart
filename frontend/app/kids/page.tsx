@@ -1,0 +1,1 @@
+﻿import CollectionPage from "@/components/CollectionPage";export default function KidsPage(){return <CollectionPage title="Kids' Collection" subtitle="Comfortable, playful styles for little trendsetters." category="kids"/>}

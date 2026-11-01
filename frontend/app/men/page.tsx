@@ -1,0 +1,1 @@
+﻿import CollectionPage from "@/components/CollectionPage";export default function MenPage(){return <CollectionPage title="Men's Collection" subtitle="Everyday essentials, casual layers and refined looks." category="men"/>}

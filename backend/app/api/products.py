@@ -18,6 +18,8 @@ from app.ai.gateway.gemini import GeminiProvider
 from app.ai.services.llm_service import LLMService
 from app.ai.services.rag_service import RAGService
 from app.schemas.product_search import ProductAskRequest
+from sqlalchemy import or_
+from app.models.product import Product
 router = APIRouter()
 
 # Reuse the same model instance instead of loading it for every request.
@@ -77,6 +79,7 @@ def ask_shopping_assistant(
             db=db,
             question=request.query,
             limit=request.limit,
+            language=getattr(request, "language", "auto"),
         )
 
         return APIResponse(data=result)
@@ -96,3 +99,128 @@ def ask_shopping_assistant(
             status_code=502,
             detail="Shopping assistant is temporarily unavailable.",
         ) from exc
+        
+
+@router.get("/")
+def get_products(
+    category: str | None = None,
+    search: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    page: int = 1,
+    page_size: int = 20,
+    db: Session = Depends(get_db),
+):
+    if page < 1:
+        raise HTTPException(status_code=422, detail="page must be >= 1")
+
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=422,
+            detail="page_size must be between 1 and 100",
+        )
+
+    if min_price is not None and min_price < 0:
+        raise HTTPException(status_code=422, detail="min_price cannot be negative")
+
+    if max_price is not None and max_price < 0:
+        raise HTTPException(status_code=422, detail="max_price cannot be negative")
+
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise HTTPException(
+            status_code=422,
+            detail="min_price cannot exceed max_price",
+        )
+
+    query = db.query(Product).filter(Product.is_active.is_(True))
+
+    if category:
+        query = query.filter(Product.category.ilike(category.strip()))
+
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Product.name.ilike(term),
+                Product.description.ilike(term),
+                Product.brand.ilike(term),
+                Product.subcategory.ilike(term),
+            )
+        )
+
+    if min_price is not None:
+        query = query.filter(Product.price >= min_price)
+
+    if max_price is not None:
+        query = query.filter(Product.price <= max_price)
+
+    total = query.count()
+    products = (
+        query.order_by(Product.id)
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return APIResponse(
+        data={
+            "items": [
+                {
+                    "product_id": product.product_id,
+                    "sku": product.sku,
+                    "name": product.name,
+                    "category": product.category,
+                    "subcategory": product.subcategory,
+                    "description": product.description,
+                    "brand": product.brand,
+                    "price": float(product.price),
+                    "image_url": product.image_url,
+                    "colors": product.colors or [],
+                    "available_sizes": product.available_sizes or [],
+                    "material": product.material,
+                    "occasions": product.occasions or [],
+                }
+                for product in products
+            ],
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size,
+        }
+    )
+
+
+@router.get("/{product_id}")
+def get_product(
+    product_id: str,
+    db: Session = Depends(get_db),
+):
+    product = (
+        db.query(Product)
+        .filter(
+            Product.product_id == product_id,
+            Product.is_active.is_(True),
+        )
+        .first()
+    )
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return APIResponse(
+        data={
+            "product_id": product.product_id,
+            "sku": product.sku,
+            "name": product.name,
+            "category": product.category,
+            "subcategory": product.subcategory,
+            "description": product.description,
+            "brand": product.brand,
+            "price": float(product.price),
+            "image_url": product.image_url,
+            "colors": product.colors or [],
+            "available_sizes": product.available_sizes or [],
+            "material": product.material,
+            "occasions": product.occasions or [],
+        }
+    )

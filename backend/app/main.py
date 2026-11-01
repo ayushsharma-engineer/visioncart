@@ -1,13 +1,13 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate
 from app.schemas.common import APIResponse
 
-from app.core.security import hash_password
 from app.core.jwt import verify_access_token
 
 from app.api.auth import router as auth_router
@@ -15,10 +15,27 @@ from app.api.auth import router as auth_router
 from app.exceptions.exceptions import AppException
 from app.exceptions.handlers import app_exception_handler
 from app.api.products import router as products_router
-
+from app.api.address import router as address_router
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.orders import router as orders_router
+from app.api.account import router as account_router
 
 app = FastAPI(title="VisionCart API")
+frontend_origin = os.getenv("FRONTEND_URL", "").strip().rstrip("/")
+allowed_origins = {
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+}
+if frontend_origin and frontend_origin != "*":
+    allowed_origins.add(frontend_origin)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=sorted(allowed_origins),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Global exception handler
 app.add_exception_handler(
@@ -39,7 +56,11 @@ app.include_router(
     prefix="/api/v1/products",
     tags=["Products"],
 )
-
+app.include_router(
+    orders_router,
+    prefix="/api/orders",
+    tags=["Orders and Payments"],
+)
 @app.get("/")
 def root():
     return APIResponse(
@@ -68,56 +89,31 @@ def get_users(
 
 
 @app.post("/users")
-def create_user(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
-    new_user = User(
-        name=user.name,
-        email=user.email,
-        password_hash=hash_password(user.password)
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return APIResponse(
-        data={
-            "id": new_user.id,
-            "name": new_user.name,
-            "email": new_user.email
-        }
+def create_user():
+    raise HTTPException(
+        status_code=410,
+        detail="Direct user creation is disabled. Use /api/auth/register to verify an email address.",
     )
 
 
-# JWT authentication
-security = HTTPBearer()
 
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
-    token = credentials.credentials
-
-    try:
-        payload = verify_access_token(token)
-        return payload
-
-    except Exception:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
-
+from app.core.dependencies import get_current_user
 
 @app.get("/profile")
 def get_profile(
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     return APIResponse(
         data={
             "message": "You are authenticated",
-            "user_id": current_user["user_id"]
+            "user_id": current_user.id,
+            "name": current_user.name,
+            "email": current_user.email,
+            "phone": current_user.phone,
+            "role": current_user.role,
         }
     )
+
+
+app.include_router(address_router, prefix="/api/addresses", tags=["Addresses"])
+app.include_router(account_router, prefix="/api/account", tags=["Customer Account"])
