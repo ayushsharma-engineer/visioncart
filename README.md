@@ -1,36 +1,178 @@
-# VisionCartAI
+# 🛍️ VisionCart – AI-Powered Fashion Shopping Platform
 
-## Email Verification and Password Reset
+**VisionCart** is an AI-powered fashion shopping platform designed to make online shopping smarter, more personalized, and budget-friendly. It leverages Artificial Intelligence, semantic search, and recommendation systems to help users discover products and build compatible outfits.
 
-Customer registration creates an inactive account and sends a six-digit verification code to the supplied email address. The code expires after five minutes. Customers must verify the address before login succeeds. Seller and delivery registration continue to use their existing approval flows.
+## 🚀 Key Features
 
-Password recovery starts at `/forgot-password`. Reset links are single-use and expire after 30 minutes. The API returns a generic forgot-password response to avoid confirming whether an email belongs to an account.
+- **AI Budget Optimizer:** Discover products and outfit combinations based on a defined shopping budget.
+- **Personalized Recommendations:** Get product suggestions based on user preferences and requirements.
+- **Outfit Compatibility:** Find matching clothing, shoes, and accessories.
+- **Occasion-Based Shopping:** Explore recommendations for different occasions.
+- **Semantic Product Search:** Search products using natural language and vector embeddings.
+- **AI Shopping Assistant:** Get conversational shopping assistance powered by Google Gemini.
+- **AI Product Comparison:** Compare products to make informed purchasing decisions.
+- **RAG-Based Recommendations:** Retrieve relevant product information using Retrieval-Augmented Generation.
 
-### Configure email delivery
+## 🧠 AI & Recommendation Architecture
 
-1. Copy `.env.example` to `.env` in the repository root.
-2. Set `DATABASE_URL` and `SECRET_KEY` (at least 32 random characters). The application reads `SECRET_KEY`; do not use `JWT_SECRET`.
-3. Configure all SMTP settings in `.env`:
+VisionCart integrates AI technologies to improve product discovery and shopping recommendations.
 
-	- `SMTP_HOST`: provider SMTP hostname, for Gmail use `smtp.gmail.com`.
-	- `SMTP_PORT`: `587` for STARTTLS or `465` for implicit TLS.
-	- `SMTP_USERNAME`: SMTP account username, usually the full sender email.
-	- `SMTP_PASSWORD`: SMTP password or provider app password. For Gmail, use a Google app password; never use or commit your account password.
-	- `SMTP_FROM_EMAIL`: verified sender address.
-	- `FRONTEND_URL`: public frontend origin, such as `http://localhost:3000` for development. FastAPI adds this exact origin to its CORS allowlist.
+- **RAG (Retrieval-Augmented Generation):** Retrieves relevant product information to generate context-aware recommendations.
+- **Embeddings:** Converts product information into numerical vector representations.
+- **Vector Search:** Uses PostgreSQL with pgvector for semantic similarity search.
+- **LLM Integration:** Uses Google Gemini API for conversational AI capabilities.
+- **Recommendation Engine:** Supports personalized product discovery and outfit suggestions.
 
-4. Install backend dependencies from `backend` with `pip install -r requirement.txt`.
-5. Apply the schema with `alembic upgrade head` from `backend`.
-6. Restart the FastAPI application and frontend after changing environment variables.
+## 🛠️ Technology Stack
 
-When required SMTP settings are absent, registration and reset requests return a clear service-unavailable error; the application does not return an OTP/reset token or claim an email was sent. SMTP transport is implemented with Python's standard library and can be adapted later without changing the authentication API.
+| Component | Technologies |
+|---|---|
+| Frontend | Next.js, React |
+| Backend | Python, FastAPI |
+| Database | PostgreSQL |
+| ORM | SQLAlchemy |
+| Vector Database | pgvector |
+| AI / LLM | Google Gemini API |
+| Embeddings | Sentence Transformers |
+| AI Architecture | RAG, Semantic Search |
+| Migrations | Alembic |
 
-### Auth API
+## 🏗️ Project Structure
 
-- `POST /api/auth/register` creates a pending customer and emails a verification code.
-- `POST /api/auth/verify-email` accepts `{ "email": "...", "otp": "123456" }` and activates the customer.
-- `POST /api/auth/resend-verification` accepts `{ "email": "..." }`; resend is limited to one per minute and five per hour.
-- `POST /api/auth/forgot-password` accepts `{ "email": "..." }` and sends a reset link when eligible.
-- `POST /api/auth/reset-password` accepts `{ "token": "...", "password": "..." }`.
+```text
+visioncart/
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── ai/
+│   │   ├── core/
+│   │   ├── db/
+│   │   ├── models/
+│   │   └── schemas/
+│   ├── alembic/
+│   └── requirements.txt
+│
+├── frontend/
+│
+├── tests/
+│
+├── .env.example
+└── README.md
+```
 
-For tests, install `backend/requirement-dev.txt` and run `pytest` from `backend`.
+## ⚙️ Getting Started
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js and npm
+- PostgreSQL with pgvector extension
+- Google Gemini API Key
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/ayushsharma-engineer/visioncart.git
+cd visioncart
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+
+python -m venv .venv
+```
+
+Activate the virtual environment:
+
+**Windows:**
+```powershell
+.venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Configure your environment variables using the provided `.env.example` file.
+
+Run database migrations:
+
+```bash
+alembic upgrade head
+```
+
+Start the backend:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Backend API documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### 3. Frontend Setup
+
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+
+Frontend development server:
+
+```text
+http://localhost:3000
+```
+
+## 🔐 Environment Variables
+
+Configure the required environment variables in your local `.env` file.
+
+```env
+DATABASE_URL=
+SECRET_KEY=
+GEMINI_API_KEY=
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+FRONTEND_URL=
+```
+
+**Note:** Never commit API keys, database credentials, or secret keys to GitHub.
+
+## 📌 Project Status
+
+**Currently under active development.**
+
+VisionCart is being developed and tested in a local environment. AI-powered recommendations, RAG integration, backend APIs, and frontend functionality are part of the ongoing development process.
+
+## 🔮 Future Enhancements
+
+- Weather-based product recommendations.
+- AI-powered size and fit assistant.
+- Material intelligence and quality scoring.
+- Visual product search.
+- Digital wardrobe assistant.
+- Enhanced personalization and recommendation models.
+- Cloud deployment and production optimization.
+
+## 👨‍💻 Developer
+
+**Ayush Sharma**
+
+- GitHub: [@ayushsharma-engineer](https://github.com/ayushsharma-engineer)
+- LinkedIn: [Ayush Sharma](https://linkedin.com/in/ayush-sharma)
+
+---
+
+⭐ If you find this project interesting, consider giving the repository a star!
+
+**VisionCart – Shop Smarter. Style Better.**
